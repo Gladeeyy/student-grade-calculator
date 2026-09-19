@@ -223,10 +223,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <p>Full Stack Web Development — Task 2: Student Grade Calculator</p>
-      </footer>
+
     </div>
   );
 }
