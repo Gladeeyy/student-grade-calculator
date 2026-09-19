@@ -435,13 +435,20 @@ def create_presentation():
     if os.path.exists(img_path3):
         slide8.shapes.add_picture(img_path3, Inches(1.416), Inches(1.6), width=Inches(10.5), height=Inches(5.4))
 
-    # Save to both project directory and Desktop
+    # Save to project directory
     project_ppt = r"C:\Users\Sam\Desktop\student-grade-calculator\Student_Grade_Calculator_Presentation.pptx"
-    desktop_ppt = r"C:\Users\Sam\Desktop\Student_Grade_Calculator_Presentation.pptx"
-
     prs.save(project_ppt)
-    prs.save(desktop_ppt)
-    print(f"Presentation saved successfully to:\n1. {project_ppt}\n2. {desktop_ppt}")
+    print(f"Presentation saved to: {project_ppt}")
+
+    # Save to Desktop
+    desktop_ppt = r"C:\Users\Sam\Desktop\Student_Grade_Calculator_Presentation.pptx"
+    try:
+        prs.save(desktop_ppt)
+        print(f"Presentation saved to: {desktop_ppt}")
+    except PermissionError:
+        desktop_alt = r"C:\Users\Sam\Desktop\Student_Grade_Calculator_Presentation_Updated.pptx"
+        prs.save(desktop_alt)
+        print(f"Presentation saved to alternative desktop location (original file is currently open): {desktop_alt}")
 
 if __name__ == "__main__":
     create_presentation()
