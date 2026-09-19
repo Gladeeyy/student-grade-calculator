@@ -1,286 +1,231 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import confetti from 'canvas-confetti';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import CalculatorForm from './components/CalculatorForm';
-import LivePreviewCard from './components/LivePreviewCard';
-import RecordsList from './components/RecordsList';
-import AnalyticsView from './components/AnalyticsView';
-import GradingScaleView from './components/GradingScaleView';
-import ScorecardModal from './components/ScorecardModal';
-import Toast from './components/Toast';
+import GradeCalculator from './components/GradeCalculator';
+import StudentRecords from './components/StudentRecords';
+import GradingScale from './components/GradingScale';
 import { 
-  computeStudentResults, 
-  validateStudentRecord, 
-  DEFAULT_PRESET_SUBJECTS 
-} from './utils/gradeUtils';
-import { INITIAL_STUDENTS } from './utils/initialData';
+  calculateTotal, 
+  calculateAverage, 
+  calculateGrade, 
+  checkPassStatus,
+  sampleStudents 
+} from './utils/gradeHelper';
 import './App.css';
 
-const LOCAL_STORAGE_KEY = 'edugrade_students_v1';
-
 export default function App() {
-  // Navigation tab: 'calculator' | 'records' | 'analytics' | 'scale'
-  const [activeTab, setActiveTab] = useState('calculator');
+  // 1. Navigation State: Which page is active ('calculator', 'records', 'scale')
+  const [activePage, setActivePage] = useState('calculator');
 
-  // Students list with LocalStorage persistence
+  // 2. Student Records State: Load from localStorage or use initial sample data
   const [students, setStudents] = useState(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (err) {
-      console.error('Failed to parse saved students:', err);
-    }
-    return INITIAL_STUDENTS;
+    const saved = localStorage.getItem('grade_calculator_students');
+    return saved ? JSON.parse(saved) : sampleStudents;
   });
 
-  // Save to LocalStorage whenever students change
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(students));
-    } catch (err) {
-      console.error('Failed to save to localStorage:', err);
+  // 3. Form Input State
+  const [studentData, setStudentData] = useState({
+    id: null,
+    name: '',
+    rollNo: '',
+    marks: {
+      subject1: '',
+      subject2: '',
+      subject3: '',
+      subject4: '',
+      subject5: ''
     }
+  });
+
+  // 4. Editing State & Error State
+  const [isEditing, setIsEditing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // 5. Live Calculation State
+  const [liveTotal, setLiveTotal] = useState(0);
+  const [liveAverage, setLiveAverage] = useState(0);
+  const [liveGrade, setLiveGrade] = useState('F');
+  const [liveStatus, setLiveStatus] = useState('Pending');
+
+  // useEffect 1: Save students to localStorage whenever students list changes
+  useEffect(() => {
+    localStorage.setItem('grade_calculator_students', JSON.stringify(students));
   }, [students]);
 
-  // Initial blank form data
-  const createBlankForm = () => ({
-    id: `rec-${Date.now()}`,
-    rollNo: '',
-    name: '',
-    department: 'Computer Science & Engineering',
-    semester: '5',
-    academicYear: '2025-2026',
-    subjects: [
-      { id: 'sub-1', code: 'CS501', name: 'Full Stack Web Dev', credits: 4, marks: '', maxMarks: 100 },
-      { id: 'sub-2', code: 'CS502', name: 'Software Engineering', credits: 4, marks: '', maxMarks: 100 },
-      { id: 'sub-3', code: 'CS503', name: 'Computer Networks', credits: 3, marks: '', maxMarks: 100 },
-      { id: 'sub-4', code: 'CS504', name: 'Cloud Computing', credits: 3, marks: '', maxMarks: 100 }
-    ]
-  });
-
-  const [formData, setFormData] = useState(createBlankForm);
-  const [isEditing, setIsEditing] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [selectedScorecardStudent, setSelectedScorecardStudent] = useState(null);
-  const [toast, setToast] = useState(null);
-
-  // Auto-dismiss toast
+  // useEffect 2: Automatically calculate total, average, and grade whenever marks change
   useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
+    const total = calculateTotal(studentData.marks);
+    const average = calculateAverage(total, 5);
+    const grade = calculateGrade(average);
+    const status = checkPassStatus(studentData.marks);
 
-  // Real-time calculation using useEffect & useMemo
-  const currentCalculation = useMemo(() => {
-    return computeStudentResults(formData.subjects);
-  }, [formData.subjects]);
+    setLiveTotal(total);
+    setLiveAverage(average);
+    setLiveGrade(grade);
+    setLiveStatus(status);
+  }, [studentData.marks]);
 
-  // Handle saving (Add or Edit)
+  // Handle Form Submission (Save or Update)
   const handleSaveStudent = (e) => {
     e.preventDefault();
 
-    const validation = validateStudentRecord(formData, students, isEditing);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      setToast({
-        type: 'error',
-        message: 'Please resolve form validation errors before saving.'
-      });
+    // Client-side Validation: Name check
+    if (!studentData.name.trim()) {
+      setErrorMessage('Please enter the student name.');
       return;
     }
 
-    const computed = computeStudentResults(formData.subjects);
-    const completeStudentRecord = {
-      ...formData,
-      ...computed,
-      dateModified: new Date().toISOString().split('T')[0]
-    };
+    // Client-side Validation: Roll Number check
+    if (!studentData.rollNo.trim()) {
+      setErrorMessage('Please enter the roll number.');
+      return;
+    }
 
-    if (isEditing) {
-      setStudents(prev => prev.map(s => s.id === formData.id ? completeStudentRecord : s));
-      setIsEditing(false);
-      setToast({
-        type: 'success',
-        message: `Updated student record for ${formData.name} (${formData.rollNo}) successfully!`
-      });
-    } else {
-      setStudents(prev => [completeStudentRecord, ...prev]);
-      setToast({
-        type: 'success',
-        message: `Saved student record for ${formData.name} (${formData.rollNo})!`
-      });
+    // Client-side Validation: Marks range check (0 to 100)
+    const marksValues = [
+      studentData.marks.subject1,
+      studentData.marks.subject2,
+      studentData.marks.subject3,
+      studentData.marks.subject4,
+      studentData.marks.subject5
+    ];
 
-      // Confetti celebration if high grade scored!
-      if (computed.overallGrade === 'O' || computed.overallGrade === 'A+') {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+    for (let i = 0; i < marksValues.length; i++) {
+      const val = marksValues[i];
+      if (val === '' || val === null) {
+        setErrorMessage(`Please enter marks for Subject ${i + 1}.`);
+        return;
+      }
+      const num = Number(val);
+      if (isNaN(num) || num < 0 || num > 100) {
+        setErrorMessage(`Marks for Subject ${i + 1} must be a number between 0 and 100.`);
+        return;
       }
     }
 
-    // Reset form to blank
-    setFormData(createBlankForm());
-    setErrors({});
-    setActiveTab('records');
+    // Clear error message if validation passes
+    setErrorMessage('');
+
+    // Prepare complete record
+    const newRecord = {
+      id: isEditing ? studentData.id : Date.now(),
+      name: studentData.name.trim(),
+      rollNo: studentData.rollNo.trim().toUpperCase(),
+      marks: {
+        subject1: Number(studentData.marks.subject1),
+        subject2: Number(studentData.marks.subject2),
+        subject3: Number(studentData.marks.subject3),
+        subject4: Number(studentData.marks.subject4),
+        subject5: Number(studentData.marks.subject5)
+      },
+      total: liveTotal,
+      average: liveAverage,
+      grade: liveGrade,
+      status: liveStatus
+    };
+
+    if (isEditing) {
+      // Update existing student
+      setStudents(prev => prev.map(s => s.id === studentData.id ? newRecord : s));
+      setIsEditing(false);
+    } else {
+      // Add new student to the list
+      setStudents(prev => [newRecord, ...prev]);
+    }
+
+    // Reset form fields
+    setStudentData({
+      id: null,
+      name: '',
+      rollNo: '',
+      marks: { subject1: '', subject2: '', subject3: '', subject4: '', subject5: '' }
+    });
+
+    // Navigate to Records page to see the saved result
+    setActivePage('records');
   };
 
-  // Edit existing student
+  // Handle Edit: Load student data into calculator
   const handleEditStudent = (student) => {
-    setFormData({
+    setStudentData({
       id: student.id,
-      rollNo: student.rollNo,
       name: student.name,
-      department: student.department,
-      semester: student.semester,
-      academicYear: student.academicYear || '2025-2026',
-      subjects: student.subjects.map(s => ({ ...s }))
+      rollNo: student.rollNo,
+      marks: { ...student.marks }
     });
     setIsEditing(true);
-    setErrors({});
-    setActiveTab('calculator');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setErrorMessage('');
+    setActivePage('calculator');
   };
 
-  // Cancel edit mode
+  // Handle Delete: Remove student by id
+  const handleDeleteStudent = (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this record?');
+    if (confirmDelete) {
+      setStudents(prev => prev.filter(s => s.id !== id));
+    }
+  };
+
+  // Handle Cancel Edit
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setFormData(createBlankForm());
-    setErrors({});
-  };
-
-  // Delete student
-  const handleDeleteStudent = (id, studentName) => {
-    if (window.confirm(`Are you sure you want to delete the record for ${studentName}?`)) {
-      setStudents(prev => prev.filter(s => s.id !== id));
-      setToast({
-        type: 'info',
-        message: `Deleted record for ${studentName}.`
-      });
-    }
-  };
-
-  // Quick Preset subjects loader
-  const handleLoadPreset = () => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: DEFAULT_PRESET_SUBJECTS.map(s => ({ ...s }))
-    }));
-    setToast({
-      type: 'info',
-      message: 'Loaded standard 5-course CSE curriculum preset with sample marks.'
+    setErrorMessage('');
+    setStudentData({
+      id: null,
+      name: '',
+      rollNo: '',
+      marks: { subject1: '', subject2: '', subject3: '', subject4: '', subject5: '' }
     });
-  };
-
-  // Reset to initial demo data
-  const handleResetData = () => {
-    if (window.confirm('Reset all records back to the default sample classroom dataset?')) {
-      setStudents(INITIAL_STUDENTS);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_STUDENTS));
-      setToast({
-        type: 'info',
-        message: 'Reset to initial demonstration dataset.'
-      });
-    }
-  };
-
-  // Open a fresh calculation
-  const handleOpenNewCalculation = () => {
-    setIsEditing(false);
-    setFormData(createBlankForm());
-    setErrors({});
   };
 
   return (
-    <div className="app-container">
-      {/* Toast Feedback */}
-      <Toast toast={toast} onClose={() => setToast(null)} />
-
-      {/* Header Navigation */}
-      <Navbar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        recordsCount={students.length}
-        onResetData={handleResetData}
-        onOpenNewCalculation={handleOpenNewCalculation}
+    <div className="container">
+      {/* Navigation Header */}
+      <Navbar
+        activePage={activePage}
+        setActivePage={setActivePage}
+        recordCount={students.length}
       />
 
-      {/* Main Content Pages / Views */}
-      <main className="main-content">
-        {activeTab === 'calculator' && (
-          <div className="calculator-view-grid">
-            <div className="calculator-form-column">
-              <CalculatorForm
-                formData={formData}
-                setFormData={setFormData}
-                errors={errors}
-                setErrors={setErrors}
-                onSave={handleSaveStudent}
-                isEditing={isEditing}
-                onCancelEdit={handleCancelEdit}
-                onLoadPreset={handleLoadPreset}
-              />
-            </div>
-
-            <div className="calculator-preview-column">
-              <div className="sticky-preview-wrapper">
-                <LivePreviewCard 
-                  student={formData} 
-                  calculation={currentCalculation} 
-                />
-              </div>
-            </div>
-          </div>
+      {/* Main Content Area */}
+      <main className="content">
+        {/* Page 1: Grade Calculator */}
+        {activePage === 'calculator' && (
+          <GradeCalculator
+            studentData={studentData}
+            setStudentData={setStudentData}
+            onSaveStudent={handleSaveStudent}
+            isEditing={isEditing}
+            onCancelEdit={handleCancelEdit}
+            liveTotal={liveTotal}
+            liveAverage={liveAverage}
+            liveGrade={liveGrade}
+            liveStatus={liveStatus}
+            errorMessage={errorMessage}
+          />
         )}
 
-        {activeTab === 'records' && (
-          <RecordsList
+        {/* Page 2: Student Records */}
+        {activePage === 'records' && (
+          <StudentRecords
             students={students}
             onEditStudent={handleEditStudent}
             onDeleteStudent={handleDeleteStudent}
-            onViewScorecard={setSelectedScorecardStudent}
-            onNavigateToCalculator={() => {
-              handleOpenNewCalculation();
-              setActiveTab('calculator');
+            onGoToCalculator={() => {
+              handleCancelEdit();
+              setActivePage('calculator');
             }}
           />
         )}
 
-        {activeTab === 'analytics' && (
-          <AnalyticsView 
-            students={students} 
-            onViewScorecard={setSelectedScorecardStudent}
-          />
-        )}
-
-        {activeTab === 'scale' && (
-          <GradingScaleView />
+        {/* Page 3: Grading Scale */}
+        {activePage === 'scale' && (
+          <GradingScale />
         )}
       </main>
 
-      {/* Official Scorecard Transcript Modal */}
-      {selectedScorecardStudent && (
-        <ScorecardModal
-          student={selectedScorecardStudent}
-          onClose={() => setSelectedScorecardStudent(null)}
-        />
-      )}
-
       {/* Footer */}
-      <footer className="app-footer no-print">
-        <div className="footer-content">
-          <p>
-            <strong>Task 2: Interactive JavaScript and ReactJS Application Development</strong>
-          </p>
-          <p className="footer-sub">
-            Full Stack Web Development (III CSE — F Section) • Individual Self-Learning Project: Student Grade Calculator
-          </p>
-        </div>
+      <footer className="footer">
+        <p>Full Stack Web Development — Task 2: Student Grade Calculator</p>
       </footer>
     </div>
   );
