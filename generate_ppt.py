@@ -411,7 +411,7 @@ def create_presentation():
     slide6 = prs.slides.add_slide(blank_layout)
     add_header(slide6, "5. Screenshot: Grade Calculator View", "Real-time calculation of total, average, letter grade, and pass/fail status")
     
-    img_path1 = r"C:\Users\Sam\.gemini\antigravity\scratch\student-grade-calculator\screenshots\grade-calculator.png"
+    img_path1 = r"C:\Users\Sam\Desktop\student-grade-calculator\screenshots\grade-calculator.png"
     if os.path.exists(img_path1):
         slide6.shapes.add_picture(img_path1, Inches(1.416), Inches(1.6), width=Inches(10.5), height=Inches(5.4))
 
@@ -421,7 +421,7 @@ def create_presentation():
     slide7 = prs.slides.add_slide(blank_layout)
     add_header(slide7, "6. Screenshot: Student Records Directory", "Interactive table with search by name/roll no, filtering, edit and delete")
     
-    img_path2 = r"C:\Users\Sam\.gemini\antigravity\scratch\student-grade-calculator\screenshots\student-records.png"
+    img_path2 = r"C:\Users\Sam\Desktop\student-grade-calculator\screenshots\student-records.png"
     if os.path.exists(img_path2):
         slide7.shapes.add_picture(img_path2, Inches(1.416), Inches(1.6), width=Inches(10.5), height=Inches(5.4))
 
@@ -431,12 +431,12 @@ def create_presentation():
     slide8 = prs.slides.add_slide(blank_layout)
     add_header(slide8, "7. Screenshot: Grading Scheme & Rules", "Reference table showing marks percentage cutoffs, assigned grades, and formulas")
     
-    img_path3 = r"C:\Users\Sam\.gemini\antigravity\scratch\student-grade-calculator\screenshots\grading-scale.png"
+    img_path3 = r"C:\Users\Sam\Desktop\student-grade-calculator\screenshots\grading-scale.png"
     if os.path.exists(img_path3):
         slide8.shapes.add_picture(img_path3, Inches(1.416), Inches(1.6), width=Inches(10.5), height=Inches(5.4))
 
     # Save to both project directory and Desktop
-    project_ppt = r"C:\Users\Sam\.gemini\antigravity\scratch\student-grade-calculator\Student_Grade_Calculator_Presentation.pptx"
+    project_ppt = r"C:\Users\Sam\Desktop\student-grade-calculator\Student_Grade_Calculator_Presentation.pptx"
     desktop_ppt = r"C:\Users\Sam\Desktop\Student_Grade_Calculator_Presentation.pptx"
 
     prs.save(project_ppt)

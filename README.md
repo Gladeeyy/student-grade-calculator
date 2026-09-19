@@ -135,7 +135,7 @@ export function checkPassStatus(marks) {
 
 1. Open PowerShell or Terminal in this folder:
    ```bash
-   cd C:\Users\Sam\.gemini\antigravity\scratch\student-grade-calculator
+   cd C:\Users\Sam\Desktop\student-grade-calculator
    ```
 
 2. Run the application:
