@@ -7,6 +7,19 @@
 
 ---
 
+## 📸 Application Screenshots
+
+### 1. Grade Calculator View (Entry & Live Calculation)
+![Grade Calculator View](screenshots/grade-calculator.png)
+
+### 2. Student Records View (Search, Filter, Edit & Delete)
+![Student Records View](screenshots/student-records.png)
+
+### 3. Grading Scheme & Calculation Rules
+![Grading Scheme View](screenshots/grading-scale.png)
+
+---
+
 ## 📖 How the Code Works (Simple Beginner Guide)
 
 This application is built using simple, beginner-friendly ReactJS concepts. There are **no complex animations or transitions**, making it very easy to read and explain during viva and evaluation.
