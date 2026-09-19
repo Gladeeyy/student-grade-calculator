@@ -1,9 +1,5 @@
 # Student Grade Calculator (ReactJS Application)
 
-> **Task 2: Interactive JavaScript and ReactJS Application Development**  
-> **Course**: Full Stack Web Development (III CSE — F Section)  
-> **Topic Assigned**: Group 1, Problem #5 — *Student Grade Calculator*  
-> **Core Requirement**: *"Enter marks, calculate total and average, assign grades, and display results."*
 
 ---
 
