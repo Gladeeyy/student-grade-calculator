@@ -307,7 +307,7 @@ useEffect(() => {
 
     # 6. Conclusion & Verification
     pdf.set_text_color(31, 41, 55)
-    print_section("6. Conclusion, Verification & Deliverables")
+    print_section("6. Conclusion & Verification")
     pdf.set_font("Helvetica", "", 9.5)
     conclusion_txt = (
         "The Student Grade Calculator application successfully meets and exceeds all Task 2 requirements. "
@@ -316,25 +316,6 @@ useEffect(() => {
         "without extraneous dependencies or animations."
     )
     pdf.multi_cell(0, 5.2, conclusion_txt)
-    pdf.ln(2)
-
-    # Deliverables Table / Box
-    pdf.set_font("Helvetica", "B", 9.5)
-    pdf.cell(0, 5, "Submission Links & Verification Details:", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(1)
-    
-    delivs = [
-        ("Public GitHub Repository", "https://github.com/Gladeeyy/student-grade-calculator"),
-        ("Local Project Directory", "C:\\Users\\Sam\\Desktop\\student-grade-calculator"),
-        ("Development Server", "http://localhost:5173 (Vite + React)"),
-        ("PowerPoint Presentation", "Student_Grade_Calculator_Presentation.pptx (8 slides with screenshots)")
-    ]
-    for lbl, val in delivs:
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.cell(50, 5, "- " + lbl + ":", new_x=XPos.RIGHT, new_y=YPos.LAST)
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(37, 99, 235) if "http" in val else pdf.set_text_color(31, 41, 55)
-        pdf.cell(0, 5, val, new_x="LMARGIN", new_y="NEXT")
 
     # Output paths
     desktop_pdf = r"C:\Users\Sam\Desktop\Student_Grade_Calculator_Report.pdf"
