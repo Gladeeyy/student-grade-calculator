@@ -4,16 +4,8 @@ from fpdf.enums import XPos, YPos
 
 class PDFReport(FPDF):
     def header(self):
-        # Header for Page 2 and onwards
-        if self.page_no() > 1:
-            self.set_font("Helvetica", "I", 8.5)
-            self.set_text_color(100, 110, 120)
-            self.cell(0, 5, "Full Stack Web Development - Task 2: ReactJS Application Development", align="R")
-            self.ln(6)
-            self.set_draw_color(200, 200, 200)
-            self.set_line_width(0.3)
-            self.line(20, 16, 190, 16)
-            self.ln(6)
+        # Clean header without watermark text
+        pass
 
     def footer(self):
         # Footer for Page 2 and onwards
@@ -110,17 +102,7 @@ def generate_pdf_report():
     for idx, (lbl, val) in enumerate(t2_data):
         draw_table_row(pdf, t2_y + idx * 8, lbl, val, (242, 242, 242), (217, 217, 217))
         
-    # Tagline
-    pdf.set_xy(20, 206)
-    pdf.set_font("Helvetica", "BI", 13)
-    pdf.set_text_color(11, 44, 101)
-    pdf.cell(170, 8, '"Design * Develop * Deploy"', align="C", new_x="LMARGIN", new_y="NEXT")
-    
-    # Cover bottom text
-    pdf.set_xy(20, 265)
-    pdf.set_font("Helvetica", "", 8.5)
-    pdf.set_text_color(120, 120, 120)
-    pdf.cell(170, 5, "21CSE354T | Full Stack Web Development | Task 2 Assignment Submission", align="C")
+
 
     # =========================================================================
     # PAGE 2: REPORT CONTENT - Intro, Features, Architecture
