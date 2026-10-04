@@ -19,7 +19,7 @@ export default function Navbar({ activePage, setActivePage, recordCount }) {
           className={`nav-btn ${activePage === 'records' ? 'active' : ''}`}
           onClick={() => setActivePage('records')}
         >
-          2. Student Records ({recordCount})
+          2. Student Records 
         </button>
 
         <button
